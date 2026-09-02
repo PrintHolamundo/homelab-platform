@@ -7,6 +7,8 @@
     arch_mapping:
       x86_64: amd64
       aarch64: arm64
+    docker_networks:
+      - caddy_net
 
   tasks:
     - name: Update apt cache and install base dependencies
@@ -15,6 +17,7 @@
           - ca-certificates
           - curl
           - gnupg
+          - python3-docker
         state: present
         update_cache: true
 
@@ -71,6 +74,13 @@
       register: docker_test
       changed_when: false
 
+    - name: Ensure custom shared Docker networks exist
+      community.docker.docker_network:
+        name: "{{ item }}"
+        driver: bridge
+        state: present
+      loop: "{{ docker_networks | default([]) }}"
+
     - name: Display verification status
       ansible.builtin.debug:
-        msg: "Docker is running properly on node {{ inventory_hostname }}."
+        msg: "Docker is running properly on node {{ inventory_hostname }} with networks: {{ docker_networks | join(', ') }}."
