@@ -1,0 +1,76 @@
+- name: Provision Docker CE and Docker Compose on Debian 13 LXC
+  hosts: docker_nodes
+  gather_facts: true
+  become: true
+
+  vars:
+    arch_mapping:
+      x86_64: amd64
+      aarch64: arm64
+
+  tasks:
+    - name: Update apt cache and install base dependencies
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+        update_cache: true
+
+    - name: Create directory for Docker keyring
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Download official Docker GPG key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/debian/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+
+    - name: Add official Docker CE repository (deb822 format)
+      ansible.builtin.deb822_repository:
+        name: docker
+        types: [deb]
+        uris: https://download.docker.com/linux/debian
+        suites: ["{{ ansible_facts['distribution_release'] }}"]
+        components: [stable]
+        architectures: ["{{ arch_mapping[ansible_facts['architecture']] | default('amd64') }}"]
+        signed_by: /etc/apt/keyrings/docker.asc
+        state: present
+
+    - name: Install Docker Engine, Containerd, and Plugins
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: true
+
+    - name: Start and enable Docker service
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Add users to docker group
+      ansible.builtin.user:
+        name: "{{ item }}"
+        groups: docker
+        append: true
+      loop: "{{ docker_users | default([]) }}"
+      when: docker_users is defined and docker_users | length > 0
+
+    - name: Validate Docker installation without external dependencies
+      ansible.builtin.command: docker info
+      register: docker_test
+      changed_when: false
+
+    - name: Display verification status
+      ansible.builtin.debug:
+        msg: "Docker is running properly on node {{ inventory_hostname }}."

@@ -1,0 +1,52 @@
+# ==========================================
+# OS & Editor Artifacts
+# ==========================================
+.DS_Store
+**/.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*~
+
+# ==========================================
+# Terraform
+# ==========================================
+# Local state files and backups
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Provider and module initialization directories
+**/.terraform/
+.terraform/
+
+# Dependency lock file
+.terraform.lock.hcl
+
+# Variable files containing credentials and secrets
+*.tfvars
+*.tfvars.json
+terraform.tfvars
+
+# Exported execution plans
+tfplan
+*.tfplan
+
+# Crash log files
+crash.log
+crash.*.log
+
+# ==========================================
+# Ansible
+# ==========================================
+# Auto-generated inventory produced by Terraform
+ansible-proxmox/inventory.ini
+
+# Playbook retry files
+*.retry
+
+# Plaintext vault keys and password files
+*.vault
+.vault_pass
+vault-password.txt
