@@ -1,0 +1,141 @@
+services:
+  # Media streaming server
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - VERSION=docker
+      - PLEX_CLAIM=${PLEX_CLAIM}
+    volumes:
+      - ${CONFIG_DIR}/plex:/config            
+      - ${DATA_DIR}/media/tv:/tv             
+      - ${DATA_DIR}/media/movies:/movies    
+
+  # BitTorrent download client
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    restart: unless-stopped
+    networks:
+      - media_net
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - WEBUI_PORT=8090
+    ports:
+      - 8090:8090
+      - 6881:6881
+      - 6881:6881/udp
+    volumes:
+      - ${CONFIG_DIR}/qbittorrent/config:/config
+      - ${DATA_DIR}:/data
+
+  # TV series management and automation
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: unless-stopped
+    networks:
+      - media_net
+    ports:
+      - 8989:8989
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}/sonarr/config:/config
+      - ${DATA_DIR}:/data
+
+  # Movie management and automation
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    restart: unless-stopped
+    networks:
+      - media_net
+    ports:
+      - 7878:7878
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}/radarr/config:/config
+      - ${DATA_DIR}:/data
+
+  # Torrent tracker and indexer manager
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    restart: unless-stopped
+    networks:
+      - media_net
+    ports:
+      - 9696:9696
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}/prowlarr/config:/config
+
+  # Subtitle downloader and manager
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    restart: unless-stopped
+    networks:
+      - media_net
+    ports:
+      - 6767:6767
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}/bazarr/config:/config
+      - ${DATA_DIR}:/data
+
+  # Media request and discovery frontend
+  seerr:
+    image: ghcr.io/seerr-team/seerr:latest
+    container_name: seerr
+    restart: unless-stopped
+    networks:
+      - media_net
+    ports:
+      - 5055:5055
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}/seerr/config:/config
+
+  # Web-based file manager
+  filebrowser:
+    image: filebrowser/filebrowser:latest
+    container_name: filebrowser
+    restart: unless-stopped
+    networks:
+      - media_net
+    ports:
+      - 8080:80
+    environment:
+      - FB_DATABASE=/config/filebrowser.db
+      - FB_ROOT=/srv
+      - FB_LOG=/stdout
+    volumes:
+      - ${CONFIG_DIR}/filebrowser/config:/config
+      - ${DATA_DIR}:/srv
+
+networks:
+  media_net:
+    driver: bridge
+  caddy_net:
+    external: true

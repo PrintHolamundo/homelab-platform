@@ -13,3 +13,7 @@ http://home.{{ base_domain }} {
 http://portainer.{{ base_domain }} {
     reverse_proxy portainer:9000
 }
+
+http://plex.{{ base_domain }} {
+    reverse_proxy {{ plex_server }}
+}

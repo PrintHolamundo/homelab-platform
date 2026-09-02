@@ -9,6 +9,7 @@
       - portainer
       - caddy
       - cloudflared
+      - mediacenter
       # - Add more services here as needed
 
   tasks:
