@@ -9,6 +9,7 @@
       - portainer
       - caddy
       - cloudflared
+      # - Add more services here as needed
 
   tasks:
     - name: Ensure service base directories exist
@@ -25,6 +26,23 @@
         mode: '0644'
       loop: "{{ enabled_services }}"
 
+    - name: Check which services have a .env.j2 template locally
+      ansible.builtin.stat:
+        path: "services/{{ item }}/.env.j2"
+      delegate_to: localhost
+      become: false
+      register: env_templates
+      loop: "{{ enabled_services }}"
+
+    - name: Render .env files dynamically for required services
+      ansible.builtin.template:
+        src: "services/{{ item.item }}/.env.j2"
+        dest: "/opt/services/{{ item.item }}/.env"
+        mode: '0600'
+      loop: "{{ env_templates.results }}"
+      when: item.stat.exists
+      no_log: true
+
     - name: Render and deploy Caddyfile template if Caddy is enabled
       ansible.builtin.template:
         src: services/caddy/Caddyfile.j2
@@ -32,13 +50,6 @@
         mode: '0644'
       when: "'caddy' in enabled_services"
       notify: Restart Caddy
-
-    - name: Inject environment variables for cloudflared
-      ansible.builtin.copy:
-        dest: /opt/services/cloudflared/.env
-        content: "CLOUDFLARE_TUNNEL_TOKEN={{ cloudflare_tunnel_token }}\n"
-        mode: '0600'
-      when: "'cloudflared' in enabled_services"
 
     - name: Deploy Docker Compose service stacks
       ansible.builtin.command: docker compose up -d --remove-orphans
