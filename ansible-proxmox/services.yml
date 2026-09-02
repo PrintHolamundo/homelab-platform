@@ -1,0 +1,55 @@
+---
+- name: Deploy Docker Compose services
+  hosts: docker_nodes
+  become: true
+  vars_files:
+    - vars.yml
+  vars:
+    enabled_services:
+      - portainer
+      - caddy
+      - cloudflared
+
+  tasks:
+    - name: Ensure service base directories exist
+      ansible.builtin.file:
+        path: "/opt/services/{{ item }}"
+        state: directory
+        mode: '0755'
+      loop: "{{ enabled_services }}"
+
+    - name: Copy Compose configuration files for each service
+      ansible.builtin.copy:
+        src: "services/{{ item }}/docker-compose.yml"
+        dest: "/opt/services/{{ item }}/docker-compose.yml"
+        mode: '0644'
+      loop: "{{ enabled_services }}"
+
+    - name: Render and deploy Caddyfile template if Caddy is enabled
+      ansible.builtin.template:
+        src: services/caddy/Caddyfile.j2
+        dest: /opt/services/caddy/Caddyfile
+        mode: '0644'
+      when: "'caddy' in enabled_services"
+      notify: Restart Caddy
+
+    - name: Inject environment variables for cloudflared
+      ansible.builtin.copy:
+        dest: /opt/services/cloudflared/.env
+        content: "CLOUDFLARE_TUNNEL_TOKEN={{ cloudflare_tunnel_token }}\n"
+        mode: '0600'
+      when: "'cloudflared' in enabled_services"
+
+    - name: Deploy Docker Compose service stacks
+      ansible.builtin.command: docker compose up -d --remove-orphans
+      args:
+        chdir: "/opt/services/{{ item }}"
+      loop: "{{ enabled_services }}"
+      register: compose_output
+      changed_when: "'Started' in compose_output.stdout or 'Created' in compose_output.stdout"
+
+  handlers:
+    - name: Restart Caddy
+      ansible.builtin.command: docker compose restart caddy
+      args:
+        chdir: /opt/services/caddy

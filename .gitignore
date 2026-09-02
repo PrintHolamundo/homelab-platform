@@ -43,10 +43,21 @@ crash.*.log
 # Auto-generated inventory produced by Terraform
 ansible-proxmox/inventory.ini
 
-# Playbook retry files
+# Plaintext host/group/custom variables
+ansible-proxmox/vars.yml
+vars.yml
+!vars.yml.example
+
+# Playbook retry and log files
 *.retry
+ansible.log
 
 # Plaintext vault keys and password files
 *.vault
 .vault_pass
 vault-password.txt
+
+# Environment files
+.env
+.env.*
+!.env.example

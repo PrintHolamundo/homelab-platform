@@ -1,0 +1,15 @@
+{
+    auto_https off
+}
+
+http://n8n.{{ base_domain }} {
+    reverse_proxy n8n:5678
+}
+
+http://home.{{ base_domain }} {
+    reverse_proxy homeassistant:8123
+}
+
+http://portainer.{{ base_domain }} {
+    reverse_proxy portainer:9000
+}
