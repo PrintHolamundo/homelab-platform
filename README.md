@@ -22,7 +22,7 @@ homelab-Platform/
 
 Requires Proxmox VE 8.x+, an SSH key pair (`~/.ssh/id_ed25519`), your Age private key, and local tools.
 
-* **Arch/CachyOS:**
+* **Arch:**
   ```bash
   sudo pacman -S terraform ansible openssh make sops age
   ```
