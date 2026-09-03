@@ -32,25 +32,6 @@ Requires Proxmox VE 8.x+, an SSH key pair (`~/.ssh/id_ed25519`), your Age privat
   brew install hashicorp/tap/terraform ansible make sops age
   ```
 
-* **Debian / Ubuntu:**
-  ```bash
-  # 1. Base dependencies, OpenSSH, Make, Age, and Ansible (via pipx)
-  sudo apt update && sudo apt install -y make openssh-client curl gpg age pipx
-  pipx ensurepath
-  pipx install --include-deps ansible
-
-  # 2. Terraform (Official HashiCorp Repository)
-  wget -O- [https://apt.releases.hashicorp.com/gpg](https://apt.releases.hashicorp.com/gpg) | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-  echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] [https://apt.releases.hashicorp.com](https://apt.releases.hashicorp.com) $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-  sudo apt update && sudo apt install -y terraform
-
-  # 3. SOPS (Official Debian package from GitHub Releases)
-  SOPS_VERSION=$(curl -s [https://api.github.com/repos/getsops/sops/releases/latest](https://api.github.com/repos/getsops/sops/releases/latest) | grep -Po '"tag_name": "v\K[^"]*')
-  curl -LO "[https://github.com/getsops/sops/releases/latest/download/sops_$](https://github.com/getsops/sops/releases/latest/download/sops_$){SOPS_VERSION}_amd64.deb"
-  sudo dpkg -i "sops_${SOPS_VERSION}_amd64.deb"
-  rm "sops_${SOPS_VERSION}_amd64.deb"
-  ```
-
 ## Secrets Management & Configuration
 
 Authentication to Proxmox, Cloudflare tokens, and domains are encrypted in the repository. Before running any operations, expose your Age private key in your environment:
