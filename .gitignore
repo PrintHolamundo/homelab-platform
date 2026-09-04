@@ -42,9 +42,9 @@ crash.*.log
 # ==========================================
 
 # Plaintext host/group/custom variables
-ansible-proxmox/vars.yml
-vars.yml
-!vars.yml.example
+ansible-proxmox/secrets.yml
+secrets.yml
+!secrets.yml.example
 
 # Playbook retry and log files
 *.retry
@@ -57,5 +57,4 @@ vault-password.txt
 
 # Environment files
 .env
-.env.*
 !.env.example

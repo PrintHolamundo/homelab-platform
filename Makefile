@@ -6,8 +6,8 @@ TF_DIR     := terraform-proxmox
 ANS_DIR    := ansible-proxmox
 TF_PLAIN   := $(TF_DIR)/terraform.tfvars.json
 TF_ENC     := $(TF_DIR)/terraform.enc.json
-ANS_PLAIN  := $(ANS_DIR)/vars.yml
-ANS_ENC    := $(ANS_DIR)/vars.enc.yml
+ANS_PLAIN  := $(ANS_DIR)/secrets.yml
+ANS_ENC    := $(ANS_DIR)/secrets.enc.yml
 
 ##@ Main Workflow
 deploy: decrypt infra ping provision services clean-secrets ## Run full deployment workflow: decrypt, provision, and clean plain secrets

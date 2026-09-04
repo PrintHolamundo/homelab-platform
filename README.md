@@ -16,7 +16,7 @@ homelab-Platform/
     ├── services.yml         # Compose stacks deployment playbook
     └── services/            # Caddy, Portainer, Cloudflared configurations
 ```
-*(Note: Plain text files like `terraform.tfvars.json` and `vars.yml` are ignored by Git and managed dynamically by the Makefile).*
+*(Note: Plain text files like `terraform.tfvars.json` and `secrets.yml` are ignored by Git and managed dynamically by the Makefile).*
 
 ## Prerequisites
 
@@ -46,7 +46,7 @@ export SOPS_AGE_KEY="AGE-SECRET-KEY-1..."
 
 **To modify infrastructure settings or secrets:**
 1. **Decrypt:** Run `make decrypt` to produce local plain-text files.
-2. **Edit:** Modify `terraform-proxmox/terraform.tfvars.json` (Proxmox specs, IPs) or `ansible-proxmox/vars.yml` (domains, tokens).
+2. **Edit:** Modify `terraform-proxmox/terraform.tfvars.json` (Proxmox specs, IPs) or `ansible-proxmox/secrets.yml` (domains, tokens).
 3. **Encrypt:** Run `make encrypt` to update the `.enc` files and automatically delete the plain-text versions.
 
 ## Quickstart
@@ -66,7 +66,7 @@ Execute individual pipeline stages or manage secrets independently:
 | :--- | :--- |
 | `make decrypt` | Decrypts `.enc` files into plain text for local editing. |
 | `make encrypt` | Encrypts modified plain text files into `.enc` and wipes plain text. |
-| `make clean-secrets` | Manually removes plain text secrets (`vars.yml`, `*.json`) from disk. |
+| `make clean-secrets` | Manually removes plain text secrets (`secrets.yml`, `*.json`) from disk. |
 | `make infra` | Provisions the LXC via Terraform and regenerates `inventory.ini`. |
 | `make provision` | Runs the Ansible Docker installation playbook. |
 | `make services` | Deploys Caddy, Portainer, and Cloudflared Compose stacks. |
