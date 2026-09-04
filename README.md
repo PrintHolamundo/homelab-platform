@@ -11,7 +11,7 @@ homelab-Platform/
 ├── terraform-proxmox/       # LXC provisioning & inventory auto-generation
 │   └── terraform.enc.json   # Encrypted infrastructure settings (Git tracked)
 └── ansible-proxmox/
-    ├── vars.enc.yml         # Encrypted secrets and domain settings (Git tracked)
+    ├── secrets.enc.yml         # Encrypted secrets and domain settings (Git tracked)
     ├── docker.yml           # Docker CE installation playbook
     ├── services.yml         # Compose stacks deployment playbook
     └── services/            # Caddy, Portainer, Cloudflared configurations
