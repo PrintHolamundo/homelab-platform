@@ -11,6 +11,7 @@
       - cloudflared
       - mediacenter
       - n8n
+      - immich
       - odoo
       # - Add more services here as needed
 
