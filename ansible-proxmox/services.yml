@@ -10,6 +10,8 @@
       - caddy
       - cloudflared
       - mediacenter
+      - n8n
+      - odoo
       # - Add more services here as needed
 
   tasks:
