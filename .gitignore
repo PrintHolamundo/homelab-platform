@@ -40,8 +40,6 @@ crash.*.log
 # ==========================================
 # Ansible
 # ==========================================
-# Auto-generated inventory produced by Terraform
-ansible-proxmox/inventory.ini
 
 # Plaintext host/group/custom variables
 ansible-proxmox/vars.yml
