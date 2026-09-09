@@ -1,0 +1,18 @@
+services:
+  homeassistant:
+    container_name: homeassistant
+    image: ${HOMEASSISTANT_IMAGE}
+    volumes:
+      - ${CONFIG_PATH}/homeassistant:/config
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "${HA_PORT}:8123"
+    environment:
+      - TZ=${TZ}
+    networks:
+      - caddy_net
+    restart: unless-stopped
+
+networks:
+  caddy_net:
+    external: true

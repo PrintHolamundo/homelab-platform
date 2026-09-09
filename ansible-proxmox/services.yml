@@ -13,6 +13,7 @@
       - n8n
       - immich
       - odoo
+      - homeassistant
       # - Add more services here as needed
 
   tasks:
