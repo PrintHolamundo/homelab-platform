@@ -29,9 +29,31 @@ http://odoo.{{ base_domain }} {
 }
 
 http://homepage.{{ base_domain }} {
+    header {
+        X-Robots-Tag "noindex, nofollow"
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+{% if homepage_auth_user is defined and homepage_auth_password_hash is defined %}
+    basic_auth {
+        {{ homepage_auth_user }} {{ homepage_auth_password_hash }}
+    }
+{% endif %}
     reverse_proxy homepage:3000
 }
 
 http://{{ base_domain }} {
+    header {
+        X-Robots-Tag "noindex, nofollow"
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+{% if homepage_auth_user is defined and homepage_auth_password_hash is defined %}
+    basic_auth {
+        {{ homepage_auth_user }} {{ homepage_auth_password_hash }}
+    }
+{% endif %}
     reverse_proxy homepage:3000
 }
