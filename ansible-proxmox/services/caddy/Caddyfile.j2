@@ -21,3 +21,9 @@ http://plex.{{ base_domain }} {
 http://paperless.{{ base_domain }} {
     reverse_proxy paperless:8000
 }
+
+http://odoo.{{ base_domain }} {
+    reverse_proxy odoo_app:8069 {
+        header_up X-Forwarded-Proto https
+    }
+}

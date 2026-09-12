@@ -1,0 +1,38 @@
+services:
+  odoo:
+    image: odoo:${ODOO_VERSION}
+    container_name: odoo_app
+    depends_on:
+      - db
+    environment:
+      - HOST=db
+      - USER=${POSTGRES_USER}
+      - PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ${STORAGE_PATH}/odoo/filestore:/var/lib/odoo
+      - ${STORAGE_PATH}/odoo/config:/etc/odoo
+      - ${STORAGE_PATH}/odoo/addons:/mnt/extra-addons
+    networks:
+      - odoo_internal
+      - caddy_net
+    restart: unless-stopped
+
+  db:
+    image: postgres:${POSTGRES_VERSION}
+    container_name: odoo_db
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ${STORAGE_PATH}/postgres:/var/lib/postgresql/data
+    networks:
+      - odoo_internal
+    restart: unless-stopped
+
+networks:
+  odoo_internal:
+    driver: bridge
+  caddy_net:
+    external: true
