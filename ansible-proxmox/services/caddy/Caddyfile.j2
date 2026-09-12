@@ -31,3 +31,7 @@ http://odoo.{{ base_domain }} {
 http://homepage.{{ base_domain }} {
     reverse_proxy homepage:3000
 }
+
+http://{{ base_domain }} {
+    reverse_proxy homepage:3000
+}
