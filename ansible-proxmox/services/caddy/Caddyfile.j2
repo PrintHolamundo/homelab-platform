@@ -17,3 +17,7 @@ http://portainer.{{ base_domain }} {
 http://plex.{{ base_domain }} {
     reverse_proxy {{ plex_server }}
 }
+
+http://paperless.{{ base_domain }} {
+    reverse_proxy paperless:8000
+}

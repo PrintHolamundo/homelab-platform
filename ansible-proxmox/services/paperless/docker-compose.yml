@@ -1,0 +1,62 @@
+services:
+  paperless-broker:
+    image: docker.io/valkey/valkey:8-alpine
+    container_name: paperless_broker
+    restart: unless-stopped
+    volumes:
+      - ${PAPERLESS_STORAGE_PATH}/redis:/data
+    networks:
+      - paperless_net
+
+  paperless-db:
+    image: docker.io/library/postgres:16-alpine
+    container_name: paperless_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    volumes:
+      - ${PAPERLESS_STORAGE_PATH}/pgdata:/var/lib/postgresql/data
+    networks:
+      - paperless_net
+
+  paperless:
+    image: ghcr.io/paperless-ngx/paperless-ngx:${PAPERLESS_VERSION}
+    container_name: paperless_webserver
+    restart: unless-stopped
+    depends_on:
+      - paperless-db
+      - paperless-broker
+    ports:
+      - "${PAPERLESS_PORT}:8000"
+    environment:
+      PAPERLESS_REDIS: redis://paperless-broker:6379
+      PAPERLESS_DBENGINE: postgresql
+      PAPERLESS_DBHOST: paperless-db
+      PAPERLESS_DBPORT: 5432
+      PAPERLESS_DBNAME: ${DB_NAME}
+      PAPERLESS_DBUSER: ${DB_USER}
+      PAPERLESS_DBPASS: ${DB_PASS}
+      PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY}
+      PAPERLESS_URL: ${PAPERLESS_URL}
+      PAPERLESS_TIME_ZONE: ${PAPERLESS_TIME_ZONE}
+      PAPERLESS_OCR_LANGUAGE: ${PAPERLESS_OCR_LANGUAGE}
+      USERMAP_UID: ${USERMAP_UID}
+      USERMAP_GID: ${USERMAP_GID}
+      PAPERLESS_USE_X_FORWARD_PORT: ${PAPERLESS_USE_X_FORWARD_PORT}
+      PAPERLESS_USE_X_FORWARD_HOST: ${PAPERLESS_USE_X_FORWARD_HOST}
+    volumes:
+      - ${PAPERLESS_STORAGE_PATH}/data:/usr/src/paperless/data
+      - ${PAPERLESS_STORAGE_PATH}/media:/usr/src/paperless/media
+      - ${PAPERLESS_STORAGE_PATH}/export:/usr/src/paperless/export
+      - ${PAPERLESS_STORAGE_PATH}/consume:/usr/src/paperless/consume
+    networks:
+      - paperless_net
+      - caddy_net
+
+networks:
+  paperless_net:
+    driver: bridge
+  caddy_net:
+    external: true

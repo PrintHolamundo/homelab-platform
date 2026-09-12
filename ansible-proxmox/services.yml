@@ -12,6 +12,7 @@
       - mediacenter
       - n8n
       - immich
+      - paperless
       - odoo
       - homeassistant
       # - Add more services here as needed
