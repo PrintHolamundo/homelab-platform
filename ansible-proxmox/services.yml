@@ -15,6 +15,7 @@
       - paperless
       - odoo
       - homeassistant
+      - homepage
       # - Add more services here as needed
 
   tasks:
@@ -57,6 +58,27 @@
       when: "'caddy' in enabled_services"
       notify: Restart Caddy
 
+    - name: Ensure Homepage config directory exists
+      ansible.builtin.file:
+        path: /opt/services/homepage/config
+        state: directory
+        mode: '0755'
+      when: "'homepage' in enabled_services"
+
+    - name: Render and deploy Homepage configurations if Homepage is enabled
+      ansible.builtin.template:
+        src: "services/homepage/config/{{ item }}.j2"
+        dest: "/opt/services/homepage/config/{{ item }}"
+        mode: '0644'
+      loop:
+        - settings.yaml
+        - services.yaml
+        - widgets.yaml
+        - bookmarks.yaml
+        - docker.yaml
+      when: "'homepage' in enabled_services"
+      notify: Restart Homepage
+
     - name: Deploy Docker Compose service stacks
       ansible.builtin.command: docker compose up -d --remove-orphans
       args:
@@ -70,3 +92,8 @@
       ansible.builtin.command: docker compose restart caddy
       args:
         chdir: /opt/services/caddy
+
+    - name: Restart Homepage
+      ansible.builtin.command: docker compose restart homepage
+      args:
+        chdir: /opt/services/homepage

@@ -27,3 +27,7 @@ http://odoo.{{ base_domain }} {
         header_up X-Forwarded-Proto https
     }
 }
+
+http://homepage.{{ base_domain }} {
+    reverse_proxy homepage:3000
+}

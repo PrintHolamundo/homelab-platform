@@ -1,0 +1,118 @@
+---
+# Homepage Services Configuration
+# https://gethomepage.dev/configs/services/
+
+- Core & Infraestructura:
+    - Portainer:
+        icon: portainer.png
+        href: "https://portainer.{{ base_domain }}"
+        description: "Gestión de Contenedores Docker"
+        server: my-docker
+        container: portainer
+
+    - Caddy:
+        icon: caddy.png
+        href: "https://homepage.{{ base_domain }}"
+        description: "Reverse Proxy y SSL"
+        server: my-docker
+        container: caddy
+
+    - Cloudflared:
+        icon: cloudflare.png
+        description: "Túnel Cloudflare Zero Trust"
+        server: my-docker
+        container: cloudflared
+
+- Automatización & Productividad:
+    - Home Assistant:
+        icon: home-assistant.png
+        href: "https://home.{{ base_domain }}"
+        description: "Domótica y Automatización del Hogar"
+        server: my-docker
+        container: homeassistant
+
+    - n8n:
+        icon: n8n.png
+        href: "https://n8n.{{ base_domain }}"
+        description: "Automatización de Flujos de Trabajo"
+        server: my-docker
+        container: n8n_app
+
+    - Paperless-ngx:
+        icon: paperless-ngx.png
+        href: "https://paperless.{{ base_domain }}"
+        description: "Gestión Documental y OCR"
+        server: my-docker
+        container: paperless_webserver
+
+    - Odoo:
+        icon: odoo.png
+        href: "https://odoo.{{ base_domain }}"
+        description: "ERP y Gestión Empresarial"
+        server: my-docker
+        container: odoo_app
+
+- Media & Streaming:
+    - Plex:
+        icon: plex.png
+        href: "https://plex.{{ base_domain }}"
+        description: "Servidor de Streaming Multimedia"
+        server: my-docker
+        container: plex
+
+    - Overseerr:
+        icon: overseerr.png
+        href: "http://{{ ansible_host | default('192.168.100.79') }}:5055"
+        description: "Solicitud y Descubrimiento de Medios"
+        server: my-docker
+        container: seerr
+
+    - Sonarr:
+        icon: sonarr.png
+        href: "http://{{ ansible_host | default('192.168.100.79') }}:8989"
+        description: "Gestor de Series de TV"
+        server: my-docker
+        container: sonarr
+
+    - Radarr:
+        icon: radarr.png
+        href: "http://{{ ansible_host | default('192.168.100.79') }}:7878"
+        description: "Gestor de Películas"
+        server: my-docker
+        container: radarr
+
+    - Prowlarr:
+        icon: prowlarr.png
+        href: "http://{{ ansible_host | default('192.168.100.79') }}:9696"
+        description: "Gestor de Indexadores y Trackers"
+        server: my-docker
+        container: prowlarr
+
+    - Bazarr:
+        icon: bazarr.png
+        href: "http://{{ ansible_host | default('192.168.100.79') }}:6767"
+        description: "Gestor de Subtítulos"
+        server: my-docker
+        container: bazarr
+
+    - qBittorrent:
+        icon: qbittorrent.png
+        href: "http://{{ ansible_host | default('192.168.100.79') }}:8090"
+        description: "Cliente de Descargas BitTorrent"
+        server: my-docker
+        container: qbittorrent
+
+- Almacenamiento & Archivos:
+    - Immich:
+        icon: immich.png
+        href: "http://{{ ansible_host | default('192.168.100.79') }}:2283"
+        description: "Galería y Respaldo de Fotos y Videos"
+        server: my-docker
+        container: immich_server
+
+    - Filebrowser:
+        icon: filebrowser.png
+        href: "http://{{ ansible_host | default('192.168.100.79') }}:8080"
+        description: "Explorador de Archivos Web"
+        server: my-docker
+        container: filebrowser
