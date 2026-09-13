@@ -110,12 +110,13 @@ services:
     restart: unless-stopped
     networks:
       - media_net
+      - caddy_net
     ports:
       - 5055:5055
     environment:
       - TZ=${TZ}
     volumes:
-      - ${CONFIG_DIR}/seerr/config:/config
+      - ${CONFIG_DIR}/overseerr:/app/config
 
   # Web-based file manager
   filebrowser:

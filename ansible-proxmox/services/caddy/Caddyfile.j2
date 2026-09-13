@@ -28,6 +28,10 @@ http://odoo.{{ base_domain }} {
     }
 }
 
+http://overseerr.{{ base_domain }} {
+    reverse_proxy seerr:5055
+}
+
 http://homepage.{{ base_domain }} {
     header {
         X-Robots-Tag "noindex, nofollow"

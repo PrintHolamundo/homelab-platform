@@ -62,7 +62,7 @@
 
     - Overseerr:
         icon: overseerr.png
-        href: "http://{{ ansible_host | default('192.168.100.79') }}:5055"
+        href: "https://overseerr.{{ base_domain }}"
         description: "Solicitud y Descubrimiento de Medios"
         server: my-docker
         container: seerr
