@@ -123,6 +123,7 @@ services:
     image: filebrowser/filebrowser:latest
     container_name: filebrowser
     restart: unless-stopped
+    user: "0:0"
     networks:
       - media_net
     ports:
@@ -133,7 +134,7 @@ services:
       - FB_LOG=/stdout
     volumes:
       - ${CONFIG_DIR}/filebrowser/config:/config
-      - ${DATA_DIR}:/srv
+      - /mnt:/srv
 
 networks:
   media_net:
