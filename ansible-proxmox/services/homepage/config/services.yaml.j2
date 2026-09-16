@@ -54,8 +54,8 @@
 
     - DoChat:
         icon: si-googlegemini.png
-        href: "https://dochat.{{ base_domain }}"
-        description: "Chat e Inteligencia Financiera Documental"
+        href: "http://{{ ansible_host | default('192.168.100.79') }}:{{ dochat_port | default('3060') }}"
+        description: "Chat e Inteligencia Financiera Documental (Local)"
         server: my-docker
         container: dochat
 

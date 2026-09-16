@@ -26,10 +26,6 @@ http://paperless-ai.{{ base_domain }} {
     reverse_proxy paperless-ai:3000
 }
 
-http://dochat.{{ base_domain }} {
-    reverse_proxy dochat:8000
-}
-
 
 http://odoo.{{ base_domain }} {
     reverse_proxy odoo_app:8069 {

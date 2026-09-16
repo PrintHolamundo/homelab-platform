@@ -18,12 +18,9 @@ services:
     volumes:
       - ${CONFIG_DIR}/dochat/data:/data
     networks:
-      - caddy_net
       - paperless_net
 
 networks:
-  caddy_net:
-    external: true
   paperless_net:
     external: true
     name: paperless_paperless_net
