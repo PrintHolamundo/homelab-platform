@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paperless AI Assistant</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Marked for Markdown parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .prose table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; margin-bottom: 0.75rem; }
+    .prose th, .prose td { border: 1px solid #334155; padding: 0.5rem 0.75rem; text-align: left; }
+    .prose th { background-color: #1e293b; color: #f8fafc; font-weight: 600; }
+    .prose tr:nth-child(even) { background-color: #0f172a; }
+    .prose a { color: #38bdf8; text-decoration: underline; }
+    .prose a:hover { color: #7dd3fc; }
+    .prose ul { list-style-type: disc; margin-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+    .prose ol { list-style-type: decimal; margin-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+    .prose code { background-color: #1e293b; padding: 0.15rem 0.35rem; border-radius: 0.25rem; font-size: 0.875rem; }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans antialiased overflow-hidden">
+
+  <!-- Header -->
+  <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between shrink-0 shadow-sm">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-950">
+        <i data-lucide="file-text" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-lg text-slate-100 flex items-center gap-2">
+          Paperless AI Assistant
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/60">Live</span>
+        </h1>
+        <p class="text-xs text-slate-400">Analíticas de gastos y consulta inteligente de documentos</p>
+      </div>
+    </div>
+
+    <!-- Actions & Stats -->
+    <div class="flex items-center gap-3">
+      <div id="stats-badge" class="hidden sm:flex items-center gap-2 text-xs bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/60 text-slate-300">
+        <i data-lucide="database" class="w-3.5 h-3.5 text-slate-400"></i>
+        <span id="stats-text">Cargando datos...</span>
+      </div>
+
+      <button id="btn-sync" onclick="triggerSync()" title="Sincronizar transacciones de recibos y estados de cuenta" class="flex items-center gap-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 transition">
+        <i id="sync-icon" data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+        <span>Sincronizar Gastos</span>
+      </button>
+
+      <button onclick="clearChat()" title="Limpiar conversación" class="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition">
+        <i data-lucide="trash-2" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Chat Container -->
+  <main class="flex-1 flex flex-col max-w-5xl w-full mx-auto p-4 overflow-hidden">
+    <div id="messages-container" class="flex-1 overflow-y-auto space-y-4 pr-2">
+
+      <!-- Welcome Banner -->
+      <div id="welcome-card" class="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 border border-slate-800 rounded-2xl p-6 my-4 shadow-xl">
+        <div class="flex items-start gap-4">
+          <div class="p-3 bg-emerald-500/10 rounded-xl text-emerald-400 border border-emerald-500/20">
+            <i data-lucide="sparkles" class="w-6 h-6"></i>
+          </div>
+          <div class="flex-1">
+            <h2 class="text-lg font-semibold text-white">¿En qué puedo ayudarte hoy?</h2>
+            <p class="text-sm text-slate-400 mt-1">
+              Puedo consultar todo tu archivo en Paperless (pólizas, garantías, manuales, facturas) y responder cálculos financieros exactos de tus estados de cuenta.
+            </p>
+
+            <!-- Quick Suggestions -->
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button onclick="sendPrompt(this.innerText)" class="text-left text-xs bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white p-2.5 rounded-xl border border-slate-700/60 transition flex items-center gap-2">
+                <i data-lucide="trending-down" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+                <span>¿Cuánto he gastado en total este mes y en qué categorías?</span>
+              </button>
+              <button onclick="sendPrompt(this.innerText)" class="text-left text-xs bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white p-2.5 rounded-xl border border-slate-700/60 transition flex items-center gap-2">
+                <i data-lucide="receipt" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+                <span>Muestra los 5 gastos más grandes registrados</span>
+              </button>
+              <button onclick="sendPrompt(this.innerText)" class="text-left text-xs bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white p-2.5 rounded-xl border border-slate-700/60 transition flex items-center gap-2">
+                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+                <span>¿Hasta cuándo tienen vigencia mis pólizas o garantías?</span>
+              </button>
+              <button onclick="sendPrompt(this.innerText)" class="text-left text-xs bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white p-2.5 rounded-xl border border-slate-700/60 transition flex items-center gap-2">
+                <i data-lucide="search" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+                <span>¿Cuál fue el último pago de luz o servicios que tengo?</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Input Bar -->
+    <div class="mt-3 shrink-0">
+      <form id="chat-form" onsubmit="handleFormSubmit(event)" class="relative flex items-center">
+        <input 
+          id="user-input" 
+          type="text" 
+          placeholder="Escribe una pregunta sobre tus gastos, recibos o cualquier documento..." 
+          autocomplete="off"
+          class="w-full bg-slate-900 border border-slate-800 focus:border-emerald-500 rounded-2xl py-3.5 pl-4 pr-24 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-lg"
+        />
+        <button 
+          id="btn-send"
+          type="submit" 
+          class="absolute right-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-emerald-950"
+        >
+          <span>Enviar</span>
+          <i data-lucide="send" class="w-3.5 h-3.5"></i>
+        </button>
+      </form>
+      <div class="flex items-center justify-between px-2 pt-2 text-[11px] text-slate-500">
+        <span>Powered by Gemini & Paperless-ngx FTS</span>
+        <span id="sync-notification" class="text-emerald-400 hidden">Sincronización en curso...</span>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let chatHistory = [];
+    const messagesContainer = document.getElementById("messages-container");
+    const userInput = document.getElementById("user-input");
+    const btnSend = document.getElementById("btn-send");
+
+    async function loadStats() {
+      try {
+        const res = await fetch("/api/stats");
+        if (res.ok) {
+          const json = await res.json();
+          const d = json.data;
+          const badge = document.getElementById("stats-badge");
+          const text = document.getElementById("stats-text");
+          text.innerText = `${d.processed_documents} docs indexados | ${d.total_transactions} gastos ($${d.total_volume.toLocaleString()})`;
+          badge.classList.remove("hidden");
+        }
+      } catch (e) {
+        console.warn("Could not load stats", e);
+      }
+    }
+
+    async function triggerSync() {
+      const btn = document.getElementById("btn-sync");
+      const icon = document.getElementById("sync-icon");
+      const notif = document.getElementById("sync-notification");
+
+      icon.classList.add("animate-spin");
+      notif.classList.remove("hidden");
+
+      try {
+        const res = await fetch("/api/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ limit: 30 })
+        });
+        const data = await res.json();
+        console.log("Sync response:", data);
+        
+        // Poll sync status for up to 30 seconds
+        let checks = 0;
+        const interval = setInterval(async () => {
+          checks++;
+          const statusRes = await fetch("/api/sync/status");
+          const statusData = await statusRes.json();
+          if (!statusData.is_running || checks > 15) {
+            clearInterval(interval);
+            icon.classList.remove("animate-spin");
+            notif.classList.add("hidden");
+            await loadStats();
+          }
+        }, 2000);
+
+      } catch (e) {
+        console.error("Sync error:", e);
+        icon.classList.remove("animate-spin");
+        notif.classList.add("hidden");
+      }
+    }
+
+    function appendMessage(role, content, sources = []) {
+      const isUser = role === "user";
+      const messageDiv = document.createElement("div");
+      messageDiv.className = `flex gap-3 ${isUser ? "justify-end" : "justify-start"} items-start`;
+
+      const avatar = document.createElement("div");
+      avatar.className = `w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-xs font-semibold ${
+        isUser 
+          ? "bg-slate-700 text-slate-200" 
+          : "bg-emerald-600/20 text-emerald-400 border border-emerald-500/30"
+      }`;
+      avatar.innerHTML = isUser ? '<i data-lucide="user" class="w-4 h-4"></i>' : '<i data-lucide="bot" class="w-4 h-4"></i>';
+
+      const bubble = document.createElement("div");
+      bubble.className = `max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-md ${
+        isUser 
+          ? "bg-emerald-600 text-white rounded-br-none" 
+          : "bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-none prose prose-invert"
+      }`;
+
+      if (isUser) {
+        bubble.innerText = content;
+      } else {
+        bubble.innerHTML = marked.parse(content);
+        
+        // Render document source tags
+        if (sources && sources.length > 0) {
+          const sourcesDiv = document.createElement("div");
+          sourcesDiv.className = "mt-3 pt-3 border-t border-slate-800 flex flex-wrap gap-1.5 items-center not-prose";
+          
+          const label = document.createElement("span");
+          label.className = "text-[11px] text-slate-500 font-medium mr-1 flex items-center gap-1";
+          label.innerHTML = '<i data-lucide="paperclip" class="w-3 h-3"></i> Documentos:';
+          sourcesDiv.appendChild(label);
+
+          sources.forEach(s => {
+            const a = document.createElement("a");
+            a.href = s.url;
+            a.target = "_blank";
+            a.className = "inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-slate-800 text-emerald-400 hover:bg-slate-700 border border-slate-700 transition";
+            a.innerHTML = `<span>${s.title || `Doc #${s.id}`}</span> <i data-lucide="external-link" class="w-2.5 h-2.5"></i>`;
+            sourcesDiv.appendChild(a);
+          });
+          bubble.appendChild(sourcesDiv);
+        }
+      }
+
+      if (isUser) {
+        messageDiv.appendChild(bubble);
+        messageDiv.appendChild(avatar);
+      } else {
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(bubble);
+      }
+
+      messagesContainer.appendChild(messageDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      lucide.createIcons();
+    }
+
+    function sendPrompt(text) {
+      userInput.value = text;
+      handleFormSubmit(new Event('submit'));
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      const message = userInput.value.trim();
+      if (!message) return;
+
+      // Hide welcome card once conversation begins
+      const welcome = document.getElementById("welcome-card");
+      if (welcome) welcome.classList.add("hidden");
+
+      // Render user message
+      appendMessage("user", message);
+      chatHistory.push({ role: "user", content: message });
+      userInput.value = "";
+      userInput.disabled = true;
+      btnSend.disabled = true;
+
+      // Typing indicator
+      const typingIndicator = document.createElement("div");
+      typingIndicator.id = "typing-indicator";
+      typingIndicator.className = "flex gap-3 justify-start items-center text-xs text-slate-400 italic py-2";
+      typingIndicator.innerHTML = `
+        <div class="w-8 h-8 rounded-xl bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
+          <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
+        </div>
+        <span>Consultando Paperless y procesando...</span>
+      `;
+      messagesContainer.appendChild(typingIndicator);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      lucide.createIcons();
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: message,
+            history: chatHistory.slice(-6)
+          })
+        });
+
+        const data = await res.json();
+        typingIndicator.remove();
+
+        const responseText = data.response || "No se obtuvo respuesta.";
+        appendMessage("assistant", responseText, data.sources || []);
+        chatHistory.push({ role: "assistant", content: responseText });
+
+      } catch (err) {
+        typingIndicator.remove();
+        appendMessage("assistant", `❌ Error al consultar el asistente: ${err.message}`);
+      } finally {
+        userInput.disabled = false;
+        btnSend.disabled = false;
+        userInput.focus();
+      }
+    }
+
+    function clearChat() {
+      chatHistory = [];
+      messagesContainer.innerHTML = "";
+      const welcome = document.getElementById("welcome-card");
+      if (welcome) {
+        welcome.classList.remove("hidden");
+        messagesContainer.appendChild(welcome);
+      }
+    }
+
+    // Init
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      loadStats();
+      userInput.focus();
+    });
+  </script>
+</body>
+</html>

@@ -95,13 +95,29 @@
         mode: '0755'
       when: "'paperless' in enabled_services"
 
+    - name: Copy assistant files for paperless if present
+      ansible.builtin.copy:
+        src: services/paperless/assistant
+        dest: /opt/services/paperless/
+        mode: '0755'
+      when: "'paperless' in enabled_services"
+
+    - name: Ensure Paperless-Assistant storage directory exists
+      ansible.builtin.file:
+        path: "{{ CONFIG_DIR }}/paperless/assistant"
+        state: directory
+        owner: "{{ PUID }}"
+        group: "{{ PGID }}"
+        mode: '0755'
+      when: "'paperless' in enabled_services"
+
     - name: Deploy Docker Compose service stacks
-      ansible.builtin.command: docker compose up -d --remove-orphans
+      ansible.builtin.command: docker compose up -d --build --remove-orphans
       args:
         chdir: "/opt/services/{{ item }}"
       loop: "{{ enabled_services }}"
       register: compose_output
-      changed_when: "'Started' in compose_output.stdout or 'Created' in compose_output.stdout"
+      changed_when: "'Started' in compose_output.stdout or 'Created' in compose_output.stdout or 'Building' in compose_output.stdout"
 
   handlers:
     - name: Restart Caddy

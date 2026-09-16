@@ -52,6 +52,13 @@
         server: my-docker
         container: paperless_ai
 
+    - Paperless Assistant:
+        icon: paperless-ngx.png
+        href: "http://{{ ansible_host | default('192.168.100.79') }}:8050"
+        description: "Chat IA y Analíticas Financieras (LAN)"
+        server: my-docker
+        container: paperless_assistant
+
 
     - Odoo:
         icon: odoo.png

@@ -58,3 +58,15 @@ vault-password.txt
 # Environment files
 .env
 !.env.example
+
+# ==========================================
+# Python & SQLite
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+env/
+venv/
+*.db

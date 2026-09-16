@@ -88,6 +88,29 @@ services:
       - paperless_net
       - caddy_net
 
+  paperless-assistant:
+    build:
+      context: ./assistant
+      dockerfile: Dockerfile
+    image: paperless-assistant:latest
+    container_name: paperless_assistant
+    restart: unless-stopped
+    depends_on:
+      - paperless
+    ports:
+      - "${PAPERLESS_ASSISTANT_PORT:-8050}:8000"
+    environment:
+      - PAPERLESS_API_URL=http://paperless:8000/api
+      - PAPERLESS_API_TOKEN=${PAPERLESS_API_TOKEN}
+      - BASE_PAPERLESS_URL=https://paperless.${BASE_DOMAIN}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - AI_MODEL=${PAPERLESS_ASSISTANT_MODEL:-gemini-3.5-flash-lite}
+      - DATA_DIR=/app/data
+    volumes:
+      - ${PAPERLESS_STORAGE_PATH}/assistant:/app/data
+    networks:
+      - paperless_net
+
 networks:
   paperless_net:
     driver: bridge
