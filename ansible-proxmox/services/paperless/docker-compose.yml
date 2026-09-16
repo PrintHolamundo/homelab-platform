@@ -83,6 +83,7 @@ services:
       - PGID=${USERMAP_GID}
     volumes:
       - ${PAPERLESS_STORAGE_PATH}/ai:/app/data
+      - ${PAPERLESS_STORAGE_PATH}/ai/server.js:/app/server.js:ro
     networks:
       - paperless_net
       - caddy_net
