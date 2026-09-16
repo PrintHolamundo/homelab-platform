@@ -16,7 +16,6 @@
       - odoo
       - homeassistant
       - homepage
-      - dochat
       # - Add more services here as needed
 
   tasks:
@@ -96,29 +95,13 @@
         mode: '0755'
       when: "'paperless' in enabled_services"
 
-    - name: Copy app files for dochat if enabled
-      ansible.builtin.copy:
-        src: services/dochat/app
-        dest: /opt/services/dochat/
-        mode: '0755'
-      when: "'dochat' in enabled_services"
-
-    - name: Ensure DoChat storage directory exists
-      ansible.builtin.file:
-        path: "{{ CONFIG_DIR }}/dochat/data"
-        state: directory
-        owner: "{{ PUID }}"
-        group: "{{ PGID }}"
-        mode: '0755'
-      when: "'dochat' in enabled_services"
-
     - name: Deploy Docker Compose service stacks
-      ansible.builtin.command: docker compose up -d --build --remove-orphans
+      ansible.builtin.command: docker compose up -d --remove-orphans
       args:
         chdir: "/opt/services/{{ item }}"
       loop: "{{ enabled_services }}"
       register: compose_output
-      changed_when: "'Started' in compose_output.stdout or 'Created' in compose_output.stdout or 'Built' in compose_output.stdout"
+      changed_when: "'Started' in compose_output.stdout or 'Created' in compose_output.stdout"
 
   handlers:
     - name: Restart Caddy
