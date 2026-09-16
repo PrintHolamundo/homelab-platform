@@ -79,6 +79,13 @@
       when: "'homepage' in enabled_services"
       notify: Restart Homepage
 
+    - name: Copy bot files for mediacenter if present
+      ansible.builtin.copy:
+        src: services/mediacenter/bot
+        dest: /opt/services/mediacenter/
+        mode: '0755'
+      when: "'mediacenter' in enabled_services"
+
     - name: Deploy Docker Compose service stacks
       ansible.builtin.command: docker compose up -d --remove-orphans
       args:

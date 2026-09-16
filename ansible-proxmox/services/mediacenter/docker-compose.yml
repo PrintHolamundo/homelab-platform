@@ -136,6 +136,28 @@ services:
       - ${CONFIG_DIR}/filebrowser/config:/config
       - /mnt:/srv
 
+  # Telegram bot for Radarr & Sonarr automation
+  telegram-bot:
+    image: python:3.12-alpine
+    container_name: telegram_mediabot
+    restart: unless-stopped
+    networks:
+      - media_net
+    environment:
+      - TZ=${TZ}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - RADARR_URL=http://radarr:7878
+      - RADARR_API_KEY=${RADARR_API_KEY}
+      - SONARR_URL=http://sonarr:8989
+      - SONARR_API_KEY=${SONARR_API_KEY}
+      - RADARR_ROOT=/data/media/movies
+      - SONARR_ROOT=/data/media/tv
+      - QUALITY_PROFILE_ID=7
+    volumes:
+      - ./bot:/app:ro
+    working_dir: /app
+    command: python -u bot.py
+
 networks:
   media_net:
     driver: bridge
