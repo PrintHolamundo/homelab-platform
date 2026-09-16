@@ -86,6 +86,16 @@
         mode: '0755'
       when: "'mediacenter' in enabled_services"
 
+    - name: Ensure Paperless-AI storage directory exists
+      ansible.builtin.file:
+        path: "{{ CONFIG_DIR }}/paperless/ai"
+        state: directory
+        owner: "{{ PUID }}"
+        group: "{{ PGID }}"
+        mode: '0755'
+      when: "'paperless' in enabled_services"
+
+
     - name: Deploy Docker Compose service stacks
       ansible.builtin.command: docker compose up -d --remove-orphans
       args:

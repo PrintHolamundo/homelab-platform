@@ -40,6 +40,7 @@ services:
       PAPERLESS_DBPASS: ${DB_PASS}
       PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY}
       PAPERLESS_URL: ${PAPERLESS_URL}
+      PAPERLESS_ALLOWED_HOSTS: ${PAPERLESS_ALLOWED_HOSTS}
       PAPERLESS_TIME_ZONE: ${PAPERLESS_TIME_ZONE}
       PAPERLESS_OCR_LANGUAGE: ${PAPERLESS_OCR_LANGUAGE}
       USERMAP_UID: ${USERMAP_UID}
@@ -55,8 +56,38 @@ services:
       - paperless_net
       - caddy_net
 
+  paperless-ai:
+    image: clusterzx/paperless-ai:latest
+    container_name: paperless_ai
+    restart: unless-stopped
+    depends_on:
+      - paperless
+    ports:
+      - "${PAPERLESS_AI_PORT}:3000"
+    environment:
+      - PAPERLESS_API_URL=http://paperless:8000/api
+      - PAPERLESS_API_TOKEN=${PAPERLESS_API_TOKEN}
+      - PAPERLESS_URL=http://paperless:8000
+      - PAPERLESS_TOKEN=${PAPERLESS_API_TOKEN}
+      - PAPERLESS_USERNAME=${PAPERLESS_USERNAME:-admin}
+      - AI_PROVIDER=custom
+      - CUSTOM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+      - CUSTOM_MODEL=gemini-3.6-flash
+      - CUSTOM_API_KEY=${GEMINI_API_KEY}
+      - SCAN_INTERVAL=*/2 * * * *
+      - PROCESS_PREVIEWS=true
+      - CUSTOM_FIELDS={"custom_fields":[]}
+      - PUID=${USERMAP_UID}
+      - PGID=${USERMAP_GID}
+    volumes:
+      - ${PAPERLESS_STORAGE_PATH}/ai:/app/data
+    networks:
+      - paperless_net
+      - caddy_net
+
 networks:
   paperless_net:
     driver: bridge
   caddy_net:
     external: true
+
