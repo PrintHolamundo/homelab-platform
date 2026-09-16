@@ -72,9 +72,11 @@ services:
       - PAPERLESS_USERNAME=${PAPERLESS_USERNAME:-admin}
       - AI_PROVIDER=custom
       - CUSTOM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
-      - CUSTOM_MODEL=gemini-3.6-flash
+      - CUSTOM_MODEL=${PAPERLESS_AI_MODEL:-gemini-3.5-flash-lite}
       - CUSTOM_API_KEY=${GEMINI_API_KEY}
       - SCAN_INTERVAL=*/2 * * * *
+      - ADD_AI_PROCESSED_TAG=no
+      - AI_PROCESSED_TAG_NAME=
       - PROCESS_PREVIEWS=true
       - CUSTOM_FIELDS={"custom_fields":[]}
       - PUID=${USERMAP_UID}
