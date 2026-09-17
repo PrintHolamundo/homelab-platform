@@ -105,4 +105,11 @@ app.mount("/static", StaticFiles(directory="/app/static"), name="static")
 
 @app.get("/")
 async def serve_index():
-    return FileResponse("/app/static/index.html")
+    return FileResponse(
+        "/app/static/index.html",
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        },
+    )
