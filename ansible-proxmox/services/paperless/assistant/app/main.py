@@ -2,9 +2,9 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 from typing import Any, Optional
-from fastapi import FastAPI, BackgroundTasks, HTTPException
+from fastapi import FastAPI, BackgroundTasks, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -57,6 +57,14 @@ class ChatRequest(BaseModel):
 class SyncRequest(BaseModel):
     limit: Optional[int] = 30
 
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Global unhandled exception on {request.url}: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Error interno: {str(exc)}", "error": str(exc)},
+    )
+
 # API Endpoints
 @app.get("/api/health")
 async def health_check():
@@ -81,11 +89,18 @@ async def chat_endpoint(req: ChatRequest):
 
     history_dicts = [{"role": m.role, "content": m.content} for m in req.history or []]
     
-    result = await run_chat_agent(
-        user_message=req.message,
-        conversation_history=history_dicts,
-    )
-    return result
+    try:
+        result = await run_chat_agent(
+            user_message=req.message,
+            conversation_history=history_dicts,
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Unhandled error in chat_endpoint: {e}", exc_info=True)
+        return {
+            "response": f"⚠️ Error temporal al procesar la respuesta: {str(e)}. Intenta de nuevo.",
+            "sources": [],
+        }
 
 @app.post("/api/sync")
 async def trigger_sync(req: SyncRequest, background_tasks: BackgroundTasks):

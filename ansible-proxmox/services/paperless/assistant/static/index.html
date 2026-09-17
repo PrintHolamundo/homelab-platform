@@ -443,16 +443,36 @@
           })
         });
 
-        const data = await res.json();
-        typingIndicator.remove();
+        if (document.getElementById("typing-indicator")) {
+          typingIndicator.remove();
+        }
+
+        const rawText = await res.text();
+        let data = null;
+        try {
+          data = JSON.parse(rawText);
+        } catch (jsonErr) {
+          console.warn("Server returned non-JSON response:", rawText);
+          appendMessage("assistant", `⚠️ Error del servidor (${res.status}): ${rawText.slice(0, 180) || "Respuesta no válida del servicio"}`);
+          return;
+        }
+
+        if (!res.ok) {
+          const errMsg = (data && (data.detail || data.message || data.error)) || `Error HTTP ${res.status}`;
+          appendMessage("assistant", `⚠️ ${errMsg}`);
+          return;
+        }
 
         const responseText = data.response || "No se obtuvo respuesta.";
         appendMessage("assistant", responseText, data.sources || []);
         chatHistory.push({ role: "assistant", content: responseText });
 
       } catch (err) {
-        typingIndicator.remove();
-        appendMessage("assistant", `❌ Error al consultar el asistente: ${err.message}`);
+        if (document.getElementById("typing-indicator")) {
+          typingIndicator.remove();
+        }
+        console.error("Fetch error:", err);
+        appendMessage("assistant", `❌ Error al consultar el asistente: ${err.message || "Fallo de conexión"}`);
       } finally {
         userInput.disabled = false;
         btnSend.disabled = false;

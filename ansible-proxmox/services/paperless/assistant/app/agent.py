@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 from typing import Any
@@ -131,7 +132,8 @@ async def execute_tool(name: str, args: dict[str, Any]) -> Any:
             return {"count": len(results), "rows": results}
 
         elif name == "sync_financial_data":
-            limit = args.get("limit", 20)
+            # Cap sync during interactive chat to max 5 docs to prevent timeout
+            limit = min(args.get("limit", 5), 5)
             res = await sync_financial_documents(limit=limit)
             return res
 
@@ -170,78 +172,126 @@ async def run_chat_agent(
     collected_sources: list[dict[str, Any]] = []
     max_rounds = 4
 
-    for _ in range(max_rounds):
-        payload = {
-            "model": settings.ai_model,
-            "messages": messages,
-            "tools": TOOLS_DEFINITIONS,
-            "tool_choice": "auto",
-            "temperature": 0.2,
+    # Generous timeout: 90s total, 10s connection
+    timeout_config = httpx.Timeout(90.0, connect=10.0, read=90.0)
+
+    try:
+        async with httpx.AsyncClient(timeout=timeout_config) as client:
+            for round_idx in range(max_rounds):
+                payload = {
+                    "model": settings.ai_model,
+                    "messages": messages,
+                    "tools": TOOLS_DEFINITIONS,
+                    "tool_choice": "auto",
+                    "temperature": 0.2,
+                }
+
+                # Retry up to 2 times on transient network / timeout errors
+                res = None
+                for attempt in range(2):
+                    try:
+                        res = await client.post(
+                            f"{settings.ai_base_url}/chat/completions",
+                            headers=headers,
+                            json=payload,
+                        )
+                        if res.status_code == 200:
+                            break
+                        elif res.status_code in (429, 500, 502, 503, 504) and attempt == 0:
+                            logger.warning(f"LLM API returned {res.status_code}, retrying in 2s...")
+                            await asyncio.sleep(2)
+                            continue
+                        else:
+                            break
+                    except (httpx.TimeoutException, httpx.NetworkError) as req_err:
+                        if attempt == 0:
+                            logger.warning(f"LLM request {type(req_err).__name__}, retrying in 2s...")
+                            await asyncio.sleep(2)
+                            continue
+                        else:
+                            logger.error(f"LLM request failed after retry: {req_err}")
+                            return {
+                                "response": "⏱️ El modelo de IA tardó demasiado en responder. Si hay una sincronización en curso o Paperless está ocupado, por favor espera un momento e intenta de nuevo.",
+                                "sources": collected_sources,
+                            }
+
+                if res is None or res.status_code != 200:
+                    status = res.status_code if res else "desconocido"
+                    text = res.text[:200] if res else "Sin respuesta"
+                    logger.error(f"LLM API Error ({status}): {text}")
+                    return {
+                        "response": f"⚠️ Error al comunicarse con el modelo de IA ({status}). Por favor intenta de nuevo.",
+                        "sources": [],
+                    }
+
+                try:
+                    data = res.json()
+                    choice = data["choices"][0]
+                    message_obj = choice["message"]
+                    tool_calls = message_obj.get("tool_calls")
+                except Exception as parse_err:
+                    logger.error(f"Error parsing LLM response: {parse_err}, body: {res.text[:300]}")
+                    return {
+                        "response": "⚠️ Error interpretando la respuesta del modelo de IA. Intenta reformular tu pregunta.",
+                        "sources": collected_sources,
+                    }
+
+                if not tool_calls:
+                    # No more tools called, return final response
+                    return {
+                        "response": message_obj.get("content", ""),
+                        "sources": collected_sources,
+                    }
+
+                # Append the assistant's tool call message
+                messages.append(message_obj)
+
+                # Execute tools
+                for tc in tool_calls:
+                    fn_name = tc["function"]["name"]
+                    try:
+                        fn_args = json.loads(tc["function"].get("arguments", "{}"))
+                    except Exception:
+                        fn_args = {}
+
+                    tool_result = await execute_tool(fn_name, fn_args)
+
+                    # Keep track of sources for the UI
+                    if fn_name == "search_paperless" and isinstance(tool_result, dict):
+                        for doc in tool_result.get("results", []):
+                            if not any(s.get("id") == doc["id"] for s in collected_sources):
+                                collected_sources.append({
+                                    "id": doc["id"],
+                                    "title": doc["title"],
+                                    "url": doc["web_url"],
+                                })
+                    elif fn_name == "read_document_details" and isinstance(tool_result, dict):
+                        if not any(s.get("id") == tool_result.get("id") for s in collected_sources):
+                            collected_sources.append({
+                                "id": tool_result.get("id"),
+                                "title": tool_result.get("title"),
+                                "url": tool_result.get("web_url"),
+                            })
+
+                    # Safely serialize tool result, limiting character length
+                    content_str = json.dumps(tool_result, ensure_ascii=False)
+                    if len(content_str) > 12000:
+                        content_str = content_str[:12000] + "\n... [Resultado truncado por longitud]"
+
+                    messages.append({
+                        "role": "tool",
+                        "tool_call_id": tc["id"],
+                        "content": content_str,
+                    })
+
+    except Exception as general_err:
+        logger.error(f"General error in run_chat_agent: {general_err}", exc_info=True)
+        return {
+            "response": f"⚠️ Ocurrió una dificultad procesando la consulta: {str(general_err)}",
+            "sources": collected_sources,
         }
 
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            res = await client.post(
-                f"{settings.ai_base_url}/chat/completions",
-                headers=headers,
-                json=payload,
-            )
-            if res.status_code != 200:
-                logger.error(f"LLM API Error ({res.status_code}): {res.text}")
-                return {
-                    "response": f"Error al comunicarse con el modelo de IA ({res.status_code}): {res.text[:200]}",
-                    "sources": [],
-                }
-
-            data = res.json()
-            choice = data["choices"][0]
-            message_obj = choice["message"]
-            tool_calls = message_obj.get("tool_calls")
-
-            if not tool_calls:
-                # No more tools called, return final response
-                return {
-                    "response": message_obj.get("content", ""),
-                    "sources": collected_sources,
-                }
-
-            # Append the assistant's tool call message
-            messages.append(message_obj)
-
-            # Execute tools
-            for tc in tool_calls:
-                fn_name = tc["function"]["name"]
-                try:
-                    fn_args = json.loads(tc["function"].get("arguments", "{}"))
-                except Exception:
-                    fn_args = {}
-
-                tool_result = await execute_tool(fn_name, fn_args)
-
-                # Keep track of sources for the UI
-                if fn_name == "search_paperless" and isinstance(tool_result, dict):
-                    for doc in tool_result.get("results", []):
-                        if not any(s.get("id") == doc["id"] for s in collected_sources):
-                            collected_sources.append({
-                                "id": doc["id"],
-                                "title": doc["title"],
-                                "url": doc["web_url"],
-                            })
-                elif fn_name == "read_document_details" and isinstance(tool_result, dict):
-                    if not any(s.get("id") == tool_result.get("id") for s in collected_sources):
-                        collected_sources.append({
-                            "id": tool_result.get("id"),
-                            "title": tool_result.get("title"),
-                            "url": tool_result.get("web_url"),
-                        })
-
-                # Append tool result to context
-                messages.append({
-                    "role": "tool",
-                    "tool_call_id": tc["id"],
-                    "content": json.dumps(tool_result, ensure_ascii=False),
-                })
-
     return {
-        "response": "La consulta requirió demasiados pasos. Por favor sé más específico.",
+        "response": "La consulta requirió demasiados pasos. Por favor sé más específico con los datos o fechas que buscas.",
         "sources": collected_sources,
     }
