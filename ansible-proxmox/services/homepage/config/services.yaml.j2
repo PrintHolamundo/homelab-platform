@@ -131,3 +131,18 @@
         description: "Explorador de Archivos Web"
         server: my-docker
         container: filebrowser
+
+- Juegos & Entretenimiento:
+    - Minecraft:
+        icon: minecraft.png
+        href: "http://{{ ansible_host | default('192.168.100.79') }}:25565"
+        description: "Servidor Fabric Minecraft"
+        server: my-docker
+        container: minecraft
+
+    - Playit.gg:
+        icon: playit.png
+        href: "https://playit.gg/manage"
+        description: "Túnel Público Playit.gg"
+        server: my-docker
+        container: playit

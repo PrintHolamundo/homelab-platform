@@ -16,6 +16,7 @@
       - odoo
       - homeassistant
       - homepage
+      - minecraft
       # - Add more services here as needed
 
   tasks:
@@ -110,6 +111,19 @@
         group: "{{ PGID }}"
         mode: '0755'
       when: "'paperless' in enabled_services"
+
+    - name: Ensure Minecraft storage directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ PUID }}"
+        group: "{{ PGID }}"
+        mode: '0755'
+      loop:
+        - "{{ CONFIG_DIR }}/minecraft"
+        - "{{ CONFIG_DIR }}/minecraft/data"
+        - "{{ CONFIG_DIR }}/minecraft/mods"
+      when: "'minecraft' in enabled_services"
 
     - name: Deploy Docker Compose service stacks
       ansible.builtin.command: docker compose up -d --build --remove-orphans

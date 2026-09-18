@@ -1,0 +1,34 @@
+services:
+  minecraft:
+    image: ${MINECRAFT_IMAGE:-itzg/minecraft-server:java25}
+    container_name: minecraft
+    restart: unless-stopped
+    ports:
+      - "${MINECRAFT_SERVER_PORT:-25565}:25565"
+    environment:
+      EULA: "${MINECRAFT_EULA:-TRUE}"
+      VERSION: "${MINECRAFT_VERSION:-26.2}"
+      TYPE: "${MINECRAFT_TYPE:-FABRIC}"
+      ONLINE_MODE: "${MINECRAFT_ONLINE_MODE:-FALSE}"
+      TZ: "${TZ}"
+      UID: "${PUID}"
+      GID: "${PGID}"
+      ICON: "${MINECRAFT_ICON:-/data/server-icon.png}"
+      MOTD: "${MINECRAFT_MOTD}"
+      INIT_MEMORY: "${MINECRAFT_INIT_MEMORY:-4G}"
+      MAX_MEMORY: "${MINECRAFT_MAX_MEMORY:-8G}"
+      FORCE_WORLD_UPGRADE: "${MINECRAFT_FORCE_WORLD_UPGRADE:-TRUE}"
+      EXTRA_ARGS: "${MINECRAFT_EXTRA_ARGS:---safeMode}"
+    volumes:
+      - ${MINECRAFT_STORAGE_PATH}/data:/data
+      - ${MINECRAFT_STORAGE_PATH}/mods:/data/mods
+
+  playit:
+    image: ${PLAYIT_IMAGE:-ghcr.io/playit-cloud/playit-agent:1.0}
+    container_name: playit
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - SECRET_KEY=${PLAYIT_SECRET_KEY}
+    depends_on:
+      - minecraft
