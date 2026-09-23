@@ -96,6 +96,13 @@
         server: my-docker
         container: radarr
 
+    - Whisparr:
+        icon: whisparr.png
+        href: "http://{{ ansible_host | default('192.168.100.79') }}:6969"
+        description: "Gestor de Contenido Adulto"
+        server: my-docker
+        container: whisparr
+
     - Prowlarr:
         icon: prowlarr.png
         href: "http://{{ ansible_host | default('192.168.100.79') }}:9696"

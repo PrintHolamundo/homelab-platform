@@ -15,6 +15,7 @@ services:
       - ${CONFIG_DIR}/plex:/config            
       - ${DATA_DIR}/media/tv:/tv             
       - ${DATA_DIR}/media/movies:/movies    
+      - ${DATA_DIR}/media/adult:/adult
 
   # BitTorrent download client
   qbittorrent:
@@ -68,6 +69,23 @@ services:
       - TZ=${TZ}
     volumes:
       - ${CONFIG_DIR}/radarr/config:/config
+      - ${DATA_DIR}:/data
+
+  # Adult movie management and automation
+  whisparr:
+    image: ghcr.io/hotio/whisparr:latest
+    container_name: whisparr
+    restart: unless-stopped
+    networks:
+      - media_net
+    ports:
+      - 6969:6969
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}/whisparr/config:/config
       - ${DATA_DIR}:/data
 
   # Torrent tracker and indexer manager

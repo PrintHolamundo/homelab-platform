@@ -43,6 +43,7 @@ http://homepage.{{ base_domain }} {
         X-Frame-Options "DENY"
         X-Content-Type-Options "nosniff"
         Referrer-Policy "strict-origin-when-cross-origin"
+        Cache-Control "no-cache, no-store, must-revalidate"
     }
 {% if homepage_auth_user is defined and homepage_auth_password_hash is defined %}
     basic_auth {
@@ -58,6 +59,7 @@ http://{{ base_domain }} {
         X-Frame-Options "DENY"
         X-Content-Type-Options "nosniff"
         Referrer-Policy "strict-origin-when-cross-origin"
+        Cache-Control "no-cache, no-store, must-revalidate"
     }
 {% if homepage_auth_user is defined and homepage_auth_password_hash is defined %}
     basic_auth {

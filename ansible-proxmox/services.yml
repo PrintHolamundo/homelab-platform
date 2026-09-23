@@ -87,6 +87,13 @@
         mode: '0755'
       when: "'mediacenter' in enabled_services"
 
+    - name: Copy scripts for mediacenter if present
+      ansible.builtin.copy:
+        src: services/mediacenter/scripts
+        dest: /opt/services/mediacenter/
+        mode: '0755'
+      when: "'mediacenter' in enabled_services"
+
     - name: Ensure Paperless-AI storage directory exists
       ansible.builtin.file:
         path: "{{ CONFIG_DIR }}/paperless/ai"
