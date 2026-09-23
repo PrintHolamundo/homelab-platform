@@ -102,7 +102,7 @@ services:
     environment:
       - PAPERLESS_API_URL=http://paperless:8000/api
       - PAPERLESS_API_TOKEN=${PAPERLESS_API_TOKEN}
-      - BASE_PAPERLESS_URL=https://paperless.${BASE_DOMAIN}
+      - BASE_PAPERLESS_URL=${BASE_PAPERLESS_URL}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - AI_MODEL=${PAPERLESS_ASSISTANT_MODEL:-gemini-3.5-flash-lite}
       - DATA_DIR=/app/data

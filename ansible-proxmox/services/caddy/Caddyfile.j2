@@ -2,30 +2,9 @@
     auto_https off
 }
 
-http://n8n.{{ base_domain }} {
-    reverse_proxy n8n:5678
-}
-
-http://home.{{ base_domain }} {
-    reverse_proxy homeassistant:8123
-}
-
-http://portainer.{{ base_domain }} {
-    reverse_proxy portainer:9000
-}
-
 http://plex.{{ base_domain }} {
     reverse_proxy {{ plex_server }}
 }
-
-http://paperless.{{ base_domain }} {
-    reverse_proxy paperless:8000
-}
-
-http://paperless-ai.{{ base_domain }} {
-    reverse_proxy paperless-ai:3000
-}
-
 
 http://odoo.{{ base_domain }} {
     reverse_proxy odoo_app:8069 {
@@ -35,36 +14,4 @@ http://odoo.{{ base_domain }} {
 
 http://overseerr.{{ base_domain }} {
     reverse_proxy seerr:5055
-}
-
-http://homepage.{{ base_domain }} {
-    header {
-        X-Robots-Tag "noindex, nofollow"
-        X-Frame-Options "DENY"
-        X-Content-Type-Options "nosniff"
-        Referrer-Policy "strict-origin-when-cross-origin"
-        Cache-Control "no-cache, no-store, must-revalidate"
-    }
-{% if homepage_auth_user is defined and homepage_auth_password_hash is defined %}
-    basic_auth {
-        {{ homepage_auth_user }} {{ homepage_auth_password_hash }}
-    }
-{% endif %}
-    reverse_proxy homepage:3000
-}
-
-http://{{ base_domain }} {
-    header {
-        X-Robots-Tag "noindex, nofollow"
-        X-Frame-Options "DENY"
-        X-Content-Type-Options "nosniff"
-        Referrer-Policy "strict-origin-when-cross-origin"
-        Cache-Control "no-cache, no-store, must-revalidate"
-    }
-{% if homepage_auth_user is defined and homepage_auth_password_hash is defined %}
-    basic_auth {
-        {{ homepage_auth_user }} {{ homepage_auth_password_hash }}
-    }
-{% endif %}
-    reverse_proxy homepage:3000
 }
