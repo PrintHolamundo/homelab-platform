@@ -55,11 +55,47 @@
         state: present
         update_cache: true
 
+    - name: Configure Docker daemon settings (log rotation and live-restore)
+      ansible.builtin.copy:
+        dest: /etc/docker/daemon.json
+        content: |
+          {
+            "log-driver": "json-file",
+            "log-opts": {
+              "max-size": "20m",
+              "max-file": "3"
+            },
+            "live-restore": true
+          }
+        mode: '0644'
+
     - name: Start and enable Docker service
       ansible.builtin.systemd:
         name: docker
         enabled: true
         state: started
+
+    - name: Secure authorized_keys permissions
+      ansible.builtin.file:
+        path: /root/.ssh/authorized_keys
+        mode: '0600'
+
+    - name: Apply SSH hardening configuration
+      ansible.builtin.copy:
+        dest: /etc/ssh/sshd_config.d/99-hardening.conf
+        content: |
+          # SSH Hardening
+          PasswordAuthentication no
+          X11Forwarding no
+          MaxAuthTries 4
+          ClientAliveInterval 300
+          ClientAliveCountMax 3
+        mode: '0644'
+
+    - name: Mask systemd-networkd-wait-online to avoid timer delays
+      ansible.builtin.systemd:
+        name: systemd-networkd-wait-online.service
+        masked: true
 
     - name: Add users to docker group
       ansible.builtin.user:
