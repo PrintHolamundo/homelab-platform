@@ -10,7 +10,6 @@
       - caddy
       - cloudflared
       - mediacenter
-      - n8n
       - immich
       - paperless
       - odoo

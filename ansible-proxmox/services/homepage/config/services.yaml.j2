@@ -37,13 +37,6 @@
         server: my-docker
         container: homeassistant
 
-    - n8n:
-        icon: n8n.png
-        href: "http://{{ ansible_host | default('192.168.100.79') }}:5678"
-        description: "Automatización de Flujos de Trabajo"
-        server: my-docker
-        container: n8n_app
-
     - Paperless-ngx:
         icon: paperless-ngx.png
         href: "http://{{ ansible_host | default('192.168.100.79') }}:8000"
